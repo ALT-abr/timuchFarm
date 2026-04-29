@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:timuchmilk/database/farm_repository.dart';
 import 'package:timuchmilk/models/food_model.dart';
 import 'package:timuchmilk/widgets/food_card.dart';
+import 'package:timuchmilk/widgets/food_details_dialog.dart';
+import 'package:timuchmilk/widgets/page_header_card.dart';
+import 'package:timuchmilk/widgets/page_search_bar.dart';
 import 'package:timuchmilk/widgets/responsive_layout.dart';
 
 class FoodPage extends StatefulWidget {
@@ -47,14 +50,21 @@ class _FoodPageState extends State<FoodPage> {
     });
   }
 
-  Future<void> _showAddFoodDialog() async {
-    final nameController = TextEditingController();
-    final stockController = TextEditingController();
-    final unitPriceController = TextEditingController();
-    final dailyConsumptionController = TextEditingController();
-    String unit = 'Kg';
-    String category = 'Fourrage';
-    DateTime purchaseDate = DateTime.now();
+  Future<void> _showAddFoodDialog([FoodModel? food]) async {
+    final isEditing = food != null;
+    final nameController = TextEditingController(text: food?.name ?? '');
+    final stockController = TextEditingController(
+      text: food == null ? '' : food.stock.toStringAsFixed(2),
+    );
+    final unitPriceController = TextEditingController(
+      text: food == null ? '' : food.unitPrice.toStringAsFixed(2),
+    );
+    final dailyConsumptionController = TextEditingController(
+      text: food == null ? '' : food.dailyConsumption.toStringAsFixed(2),
+    );
+    String unit = food?.unit ?? 'Kg';
+    String category = food?.category ?? 'Fourrage';
+    DateTime purchaseDate = food?.purchaseDate ?? DateTime.now();
     String? errorText;
 
     final created = await showDialog<bool>(
@@ -66,7 +76,7 @@ class _FoodPageState extends State<FoodPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(22),
               ),
-              title: const Text('Add New Stock'),
+              title: Text(isEditing ? 'Edit Stock' : 'Add New Stock'),
               content: SizedBox(
                 width: 480,
                 child: SingleChildScrollView(
@@ -243,17 +253,23 @@ class _FoodPageState extends State<FoodPage> {
                     }
 
                     try {
-                      await FarmRepository.instance.addFood(
-                        FoodModel(
-                          name: name,
-                          stock: stock,
-                          unit: unit,
-                          category: category,
-                          purchaseDate: purchaseDate,
-                          unitPrice: unitPrice,
-                          dailyConsumption: dailyConsumption,
-                        ),
+                      final model = FoodModel(
+                        id: food?.id,
+                        name: name,
+                        stock: stock,
+                        unit: unit,
+                        category: category,
+                        purchaseDate: purchaseDate,
+                        unitPrice: unitPrice,
+                        dailyConsumption: dailyConsumption,
+                        photoPath: food?.photoPath,
                       );
+
+                      if (isEditing) {
+                        await FarmRepository.instance.updateFood(model);
+                      } else {
+                        await FarmRepository.instance.addFood(model);
+                      }
                     } catch (_) {
                       setDialogState(() {
                         errorText =
@@ -268,7 +284,7 @@ class _FoodPageState extends State<FoodPage> {
 
                     Navigator.pop(dialogContext, true);
                   },
-                  child: const Text('Save'),
+                  child: Text(isEditing ? 'Update' : 'Save'),
                 ),
               ],
             );
@@ -285,11 +301,95 @@ class _FoodPageState extends State<FoodPage> {
     if (created == true && mounted) {
       setState(_refreshFoods);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Food stock added successfully.'),
+        SnackBar(
+          content: Text(
+            isEditing
+                ? 'Food stock updated successfully.'
+                : 'Food stock added successfully.',
+          ),
         ),
       );
     }
+  }
+
+  Future<void> _showFoodDetailsDialog(FoodModel food) async {
+    final totalPrice = food.stock * food.unitPrice;
+    final daysLeft = _daysLeft(food);
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return FoodDetailsDialog(
+          food: food,
+          purchaseDateLabel: _formatDate(food.purchaseDate),
+          quantityBoughtLabel: '${food.stock.toStringAsFixed(2)} ${food.unit}',
+          unitPriceLabel: '${food.unitPrice.toStringAsFixed(2)} DA',
+          totalPriceLabel: '${totalPrice.toStringAsFixed(2)} DA',
+          dailyConsumptionLabel:
+              '${food.dailyConsumption.toStringAsFixed(2)} ${food.unit}/day',
+          daysLeftLabel: '$daysLeft days',
+          onClose: () => Navigator.pop(dialogContext),
+          onEdit: () async {
+            Navigator.pop(dialogContext);
+            await _showAddFoodDialog(food);
+          },
+          onDelete: () async {
+            final deleted = await _confirmDeleteFood(food);
+            if (deleted && dialogContext.mounted) {
+              Navigator.pop(dialogContext);
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Future<bool> _confirmDeleteFood(FoodModel food) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Delete Stock'),
+          content: Text(
+            'Delete "${food.name}" from stock? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFB64034),
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || food.id == null) {
+      return false;
+    }
+
+    await FarmRepository.instance.deleteFood(food.id!);
+
+    if (!mounted) {
+      return false;
+    }
+
+    setState(_refreshFoods);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${food.name} deleted successfully.'),
+      ),
+    );
+    return true;
   }
 
   String _formatDate(DateTime date) {
@@ -340,66 +440,39 @@ class _FoodPageState extends State<FoodPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFF2F0E7),
-                        Color(0xFFE6F0D7),
-                        Color(0xFFF8F3E6),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                PageHeaderCard(
+                  title: "Food Overview",
+                  description:
+                      "Track feed stock, daily usage, and refill urgency across the farm with one quick view.",
+                  action: FilledButton.icon(
+                    onPressed: _showAddFoodDialog,
+                    icon: const Icon(Icons.add),
+                    label: const Text("Add New Stock"),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF4E7A33),
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(180, 54),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(28),
                   ),
-                  child: Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    spacing: 20,
-                    runSpacing: 18,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 720),
-                        child: const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Food Overview",
-                              style: TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF2E5A20),
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              "Track feed stock, daily usage, and refill urgency across the farm with one quick view.",
-                              style: TextStyle(
-                                fontSize: 16,
-                                height: 1.45,
-                                color: Color(0xFF5A644C),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      FilledButton.icon(
-                        onPressed: _showAddFoodDialog,
-                        icon: const Icon(Icons.add),
-                        label: const Text("Add New Stock"),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF4E7A33),
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(180, 54),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                      ),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFF2F0E7),
+                      Color(0xFFE6F0D7),
+                      Color(0xFFF8F3E6),
                     ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  titleColor: const Color(0xFF2E5A20),
+                  descriptionColor: const Color(0xFF5A644C),
+                  runSpacing: 18,
+                  descriptionStyle: const TextStyle(
+                    fontSize: 16,
+                    height: 1.45,
+                    color: Color(0xFF5A644C),
                   ),
                 ),
                 const SizedBox(height: 26),
@@ -483,6 +556,7 @@ class _FoodPageState extends State<FoodPage> {
                             valueColor: _foodValueColor(food.category),
                             subValueColor: const Color(0xFF796353),
                             dateColor: _foodValueColor(food.category),
+                            onWatchStock: () => _showFoodDetailsDialog(food),
                           ),
                         )
                         .toList(),
@@ -505,41 +579,21 @@ class _FoodPageState extends State<FoodPage> {
   }
 
   Widget _buildSearchField(double width) {
-    return SizedBox(
+    return PageSearchBar(
+      controller: _searchController,
+      hintText: "Search feed...",
       width: width,
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFD9DCCC)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x12000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
+      borderRadius: 14,
+      borderColor: const Color(0xFFD9DCCC),
+      iconColor: const Color(0xFF7E8772),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x12000000),
+          blurRadius: 8,
+          offset: Offset(0, 2),
         ),
-        child: TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: "Search feed...",
-            prefixIcon: const Icon(
-              Icons.search,
-              color: Color(0xFF7E8772),
-            ),
-            suffixIcon: _searchQuery.isEmpty
-                ? null
-                : IconButton(
-                    onPressed: _searchController.clear,
-                    icon: const Icon(Icons.close, size: 18),
-                  ),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(vertical: 14),
-          ),
-        ),
-      ),
+      ],
+      showClearButton: _searchQuery.isNotEmpty,
     );
   }
 

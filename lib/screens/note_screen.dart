@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timuchmilk/database/farm_repository.dart';
 import 'package:timuchmilk/models/note_model.dart';
+import 'package:timuchmilk/widgets/page_header_card.dart';
 import 'package:timuchmilk/widgets/responsive_layout.dart';
 
 class NotePage extends StatefulWidget {
@@ -319,71 +320,42 @@ class _NotePageState extends State<NotePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFF6F0EA),
-                        Color(0xFFECE5DE),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                PageHeaderCard(
+                  title: "Farm Notes",
+                  description:
+                      "Keep track of the important actions, reminders, and checks for the farm.",
+                  action: FilledButton.icon(
+                    onPressed: _showAddNoteDialog,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF6D7F45),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 18,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(24),
+                    icon: const Icon(Icons.add),
+                    label: const Text(
+                      "Add Note",
+                      style: TextStyle(fontSize: 16),
+                    ),
                   ),
-                  child: Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    runSpacing: 16,
-                    spacing: 20,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 700),
-                        child: const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Farm Notes",
-                              style: TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF3A2929),
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              "Keep track of the important actions, reminders, and checks for the farm.",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Color(0xFF715F5F),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      FilledButton.icon(
-                        onPressed: _showAddNoteDialog,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF6D7F45),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 22,
-                            vertical: 18,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
-                        icon: const Icon(Icons.add),
-                        label: const Text(
-                          "Add Note",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFF6F0EA),
+                      Color(0xFFECE5DE),
                     ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  titleColor: const Color(0xFF3A2929),
+                  descriptionColor: const Color(0xFF715F5F),
+                  borderRadius: 24,
+                  padding: const EdgeInsets.all(22),
+                  maxContentWidth: 700,
                 ),
                 const SizedBox(height: 20),
                 LayoutBuilder(

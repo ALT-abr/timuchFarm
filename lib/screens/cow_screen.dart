@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:timuchmilk/database/farm_repository.dart';
 import 'package:timuchmilk/models/cow_model.dart';
 import 'package:timuchmilk/widgets/cow_stat_card.dart';
+import 'package:timuchmilk/widgets/page_header_card.dart';
+import 'package:timuchmilk/widgets/page_search_bar.dart';
 import 'package:timuchmilk/widgets/responsive_layout.dart';
 
 class CowPage extends StatefulWidget {
@@ -334,37 +336,13 @@ class _CowPageState extends State<CowPage> {
   }
 
   Widget _buildCowListHeader(bool compact) {
-    final searchField = SizedBox(
+    final searchField = PageSearchBar(
+      controller: _searchController,
+      hintText: "Search...",
       width: compact ? 260 : 320,
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFD9D1D1)),
-        ),
-        child: TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: "Search...",
-            prefixIcon: const Icon(
-              Icons.search,
-              color: Color(0xFF8A838A),
-            ),
-            suffixIcon: _searchQuery.isEmpty
-                ? null
-                : IconButton(
-                    onPressed: _searchController.clear,
-                    icon: const Icon(
-                      Icons.close,
-                      size: 18,
-                    ),
-                  ),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(vertical: 14),
-          ),
-        ),
-      ),
+      borderColor: const Color(0xFFD9D1D1),
+      iconColor: const Color(0xFF8A838A),
+      showClearButton: _searchQuery.isNotEmpty,
     );
 
     if (compact) {
@@ -454,75 +432,43 @@ class _CowPageState extends State<CowPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFF5EEE8),
-                        Color(0xFFF2E8DF),
-                        Color(0xFFF8F5EF),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                PageHeaderCard(
+                  title: "Cows Overview",
+                  description:
+                      "Manage your herd, track cow status, and review health information in one place.",
+                  action: OutlinedButton.icon(
+                    onPressed: _showCowDialog,
+                    icon: const Icon(
+                      Icons.add,
+                      color: Color(0xFF5D8B4F),
                     ),
-                    borderRadius: BorderRadius.circular(28),
+                    label: const Text(
+                      "Add New Cow",
+                      style: TextStyle(
+                        color: Color(0xFF5C4338),
+                        fontSize: 16,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(190, 52),
+                      side: const BorderSide(color: Color(0xFFD3C8C1)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      backgroundColor: Colors.white.withOpacity(0.6),
+                    ),
                   ),
-                  child: Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    runSpacing: 16,
-                    spacing: 20,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 720),
-                        child: const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Cows Overview",
-                              style: TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF71441F),
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              "Manage your herd, track cow status, and review health information in one place.",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Color(0xFF7A6456),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: _showCowDialog,
-                        icon: const Icon(
-                          Icons.add,
-                          color: Color(0xFF5D8B4F),
-                        ),
-                        label: const Text(
-                          "Add New Cow",
-                          style: TextStyle(
-                            color: Color(0xFF5C4338),
-                            fontSize: 16,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(190, 52),
-                          side: const BorderSide(color: Color(0xFFD3C8C1)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          backgroundColor: Colors.white.withOpacity(0.6),
-                        ),
-                      ),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFF5EEE8),
+                      Color(0xFFF2E8DF),
+                      Color(0xFFF8F5EF),
                     ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  titleColor: const Color(0xFF71441F),
+                  descriptionColor: const Color(0xFF7A6456),
                 ),
                 const SizedBox(height: 20),
                 LayoutBuilder(

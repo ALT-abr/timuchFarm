@@ -19,6 +19,7 @@ class CowModel {
     required this.createdAt,
   });
 
+  //  transforme l’objet Dart en Map : un format que SQLite peut enregistrer dans la base de données
   Map<String, Object?> toMap() {
     return {
       'id': id,
@@ -32,6 +33,7 @@ class CowModel {
     };
   }
 
+  // l’inverse de toMap() : recrée un objet d'apres les donne de sqlite
   factory CowModel.fromMap(Map<String, Object?> map) {
     return CowModel(
       id: map['id'] as int?,

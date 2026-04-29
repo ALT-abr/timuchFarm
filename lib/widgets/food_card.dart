@@ -17,6 +17,7 @@ class FoodCard extends StatefulWidget {
   final Color valueColor;
   final Color subValueColor;
   final Color dateColor;
+  final VoidCallback? onWatchStock;
 
   const FoodCard({
     super.key,
@@ -34,6 +35,7 @@ class FoodCard extends StatefulWidget {
     required this.valueColor,
     required this.subValueColor,
     required this.dateColor,
+    this.onWatchStock,
   });
 
   @override
@@ -214,26 +216,30 @@ class _FoodCardState extends State<FoodCard> {
                         Row(
                           children: [
                             Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.65),
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: const Color(0xFFE3E3DA),
+                              child: InkWell(
+                                onTap: widget.onWatchStock,
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
                                   ),
-                                ),
-                                child: Text(
-                                  widget.date == "30"
-                                      ? "Stable stock"
-                                      : "Watch stock",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: widget.dateColor,
-                                    fontWeight: FontWeight.w600,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.65),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: const Color(0xFFE3E3DA),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    widget.date == "30"
+                                        ? "Stable stock"
+                                        : "Watch stock",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: widget.dateColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ),

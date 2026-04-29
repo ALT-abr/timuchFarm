@@ -3,6 +3,7 @@ import 'package:timuchmilk/database/farm_repository.dart';
 import 'package:timuchmilk/models/cow_model.dart';
 import 'package:timuchmilk/models/milk_production_model.dart';
 import 'package:timuchmilk/widgets/milk_cart.dart';
+import 'package:timuchmilk/widgets/page_header_card.dart';
 import 'package:timuchmilk/widgets/responsive_layout.dart';
 
 class MilkPage extends StatefulWidget {
@@ -294,54 +295,43 @@ class _MilkPageState extends State<MilkPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFEAF3EE),
-                        Color(0xFFF1F6F4),
-                        Color(0xFFF7F9F8),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                PageHeaderCard(
+                  title: "Milk Tracking Page",
+                  action: FilledButton.icon(
+                    onPressed: _showAddMilkDialog,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF5E8E52),
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(190, 42),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(28),
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                    label: const Text(
+                      "Add Milk Production",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                  child: Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    alignment: WrapAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Milk Tracking Page",
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 90, 104, 98),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 30,
-                        ),
-                      ),
-                      FilledButton.icon(
-                        onPressed: _showAddMilkDialog,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF5E8E52),
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(190, 42),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text(
-                          "Add Milk Production",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFEAF3EE),
+                      Color(0xFFF1F6F4),
+                      Color(0xFFF7F9F8),
                     ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  titleColor: const Color.fromARGB(255, 90, 104, 98),
+                  descriptionColor: const Color.fromARGB(255, 90, 104, 98),
+                  spacing: 12,
+                  runSpacing: 12,
+                  titleStyle: const TextStyle(
+                    color: Color.fromARGB(255, 90, 104, 98),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 30,
                   ),
                 ),
                 const SizedBox(height: 16),

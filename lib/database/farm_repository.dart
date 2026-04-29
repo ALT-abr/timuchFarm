@@ -106,4 +106,21 @@ class FarmRepository {
   Future<int> addFood(FoodModel food) async {
     return (await _db).insert('foods', food.toMap());
   }
+
+  Future<int> updateFood(FoodModel food) async {
+    return (await _db).update(
+      'foods',
+      food.toMap(),
+      where: 'id = ?',
+      whereArgs: [food.id],
+    );
+  }
+
+  Future<int> deleteFood(int id) async {
+    return (await _db).delete(
+      'foods',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }
